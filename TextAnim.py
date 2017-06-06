@@ -1,4 +1,5 @@
 import bpy
+from bpy.props import BoolProperty, StringProperty
 from math import radians
 
 bl_info = {
@@ -14,6 +15,11 @@ bl_info = {
     "category": "Animation"
 }
 
+class TextAnimPropertyGroup(bpy.types.PropertyGroup):
+    textAnim = BoolProperty(name="TextAnim", default=False)
+    text1 = StringProperty(name="Text1", default="")
+    text2 = StringProperty(name="Text1", default="")
+
 class TextAnimOne(bpy.types.Operator):
     """Creates pre-made text animations"""
     bl_idname = "text_anim.pone"
@@ -22,28 +28,35 @@ class TextAnimOne(bpy.types.Operator):
     bl_context = "objectmode"
 
     def execute(self, context):
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete(use_global=False)
+        #bpy.ops.object.select_all(action='SELECT')
+        #bpy.ops.object.delete(use_global=False)
 
         bpy.ops.object.text_add()
         text1 = bpy.context.active_object
         text1.data.align_x = 'CENTER'
         text1.delta_location.y = text1.delta_location.y  + 0.2
         text1.data.body ="Khan"
-        text1.name = "khan"
+        
 
         bpy.ops.object.text_add()
         text2 = bpy.context.active_object
         text2.data.align_x = 'CENTER'
         text2.delta_location.y = text1.delta_location.y  - 1.2
         text2.data.body ="Amrulla"
-        text2.name = "amrulla"
+        
         
         bpy.ops.object.empty_add()
         empty = bpy.context.active_object
         empty.name = "textMain"
         empty.empty_draw_type = 'CIRCLE'
         empty.rotation_euler.x = radians(90)
+        empty.textAnim.textAnim = True
+        
+        text1.name = empty.name + "_text1"
+        text2.name = empty.name + "_text2"
+        
+        empty.textAnim.text1 = text1.name
+        empty.textAnim.text2 = text2.name        
         
         bpy.ops.object.select_all(action='DESELECT')
         text1.select = True
@@ -116,6 +129,48 @@ class TextAnimOne(bpy.types.Operator):
         
         return {'FINISHED'}
 
+class TextAnimOneUpdate(bpy.types.Operator):
+    """Updates the animation"""
+    bl_idname = "pone.update"
+    bl_label = "Update"
+    bl_options = {'REGISTER'}
+    bl_context = "objectmode"
+
+    def execute(self, context):
+        for ob in context.active_object.children:
+            if ob.name == (context.active_object.name+"_text1"):
+                if context.active_object.textAnim.text1 != "":
+                    ob.data.body = context.active_object.textAnim.text1
+            elif ob.name == (context.active_object.name+"_text2"):
+                if context.active_object.textAnim.text2 != "":
+                    ob.data.body = context.active_object.textAnim.text2
+        
+        return {'FINISHED'}
+    
+class TextAnimPOne(bpy.types.Panel):
+    bl_idname = "TextAnim_POne"
+    bl_label = "P One"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'TOOLS'
+    bl_category = "Text Anim"
+    bl_context = "objectmode"
+    
+    @classmethod
+    def poll(cls, context):
+        return (context.mode == 'OBJECT' 
+        and (context.active_object is not None)
+        and	(context.active_object.textAnim is not None)
+        and	context.active_object.textAnim.textAnim )
+    
+    def draw(self, context):
+        if bpy.context.active_object.textAnim.textAnim :
+            anim = bpy.context.active_object.textAnim
+            box = self.layout.box()
+            box.label(text=bpy.context.active_object.name + " Options")
+            box.prop(anim, "text1")
+            box.prop(anim, "text2")
+            box.operator("pone.update")
+    
 class TextAnim(bpy.types.Panel):
     bl_idname = "OBJECT_PT_text_anim"
     bl_label = "Text Anim"
@@ -131,6 +186,7 @@ class TextAnim(bpy.types.Panel):
         
 def register():
     bpy.utils.register_module(__name__)
+    bpy.types.Object.textAnim = bpy.props.PointerProperty(type=TextAnimPropertyGroup)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
