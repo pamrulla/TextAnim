@@ -125,6 +125,7 @@ def addTextObject(text):
     text1 = bpy.context.active_object
     text1.data.align_x = 'CENTER'
     text1.data.body = text
+    text1.data.extrude = 0.001
     text1.name = text
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
     return text1
