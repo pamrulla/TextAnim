@@ -73,7 +73,7 @@ def addTextObject(text):
     text1.data.align_x = 'CENTER'
     text1.data.body = text
     text1.data.extrude = 0.001
-    text1.name = text
+    text1.name = "AnimMain" + bpy.context.scene.selectionTextAnimStyle + '_' + text
     bpy.ops.object.origin_set(type='ORIGIN_GEOMETRY')
     return text1
     
@@ -83,7 +83,7 @@ def addEmptyObject(text):
     empty.name = text
     empty.empty_draw_type = 'CIRCLE'
     empty.rotation_euler.x = radians(90)
-    #empty.textAnim.textAnim = True
+    empty.textAnim.textAnim = True
     return empty
         
 def makeParent(empty, texts):
@@ -106,8 +106,8 @@ class TextAnimCreate(bpy.types.Operator):
     bl_context = "objectmode"
 
     def execute(self, context):
-        bpy.ops.object.select_all(action='SELECT')
-        bpy.ops.object.delete(use_global=False)
+        #bpy.ops.object.select_all(action='SELECT')
+        #bpy.ops.object.delete(use_global=False)
 
         text_objs = []
         
@@ -116,11 +116,11 @@ class TextAnimCreate(bpy.types.Operator):
         with open(os.path.join(dataFilesLocation, context.scene.selectionTextAnimStyle), 'r') as f:
             content = json.load(f)
             for data in content['data']:
-                text_objs.append(addTextObject('text'+str(i)))
+                text_objs.append(addTextObject('Text' + str(i)))
                 addKeyFrames(text_objs[i-1], data)
                 i += 1
         
-        empty = addEmptyObject("AnimMain " + context.scene.selectionTextAnimStyle)
+        empty = addEmptyObject("AnimMain" + context.scene.selectionTextAnimStyle)
         
         makeParent(empty, text_objs)
         
@@ -128,32 +128,35 @@ class TextAnimCreate(bpy.types.Operator):
         
         return {'FINISHED'}
 
-"""
 class TextAnimPropertyGroup(bpy.types.PropertyGroup):
     textAnim = BoolProperty(name="TextAnim", default=False)
     text1 = StringProperty(name="Text1", default="")
     text2 = StringProperty(name="Text1", default="")
+    text3 = StringProperty(name="Text3", default="")
 
-class TextAnimOneUpdate(bpy.types.Operator):
-    bl_idname = "pone.update"
+class TextAnimOUpdate(bpy.types.Operator):
+    bl_idname = "textanim.update"
     bl_label = "Update"
     bl_options = {'REGISTER'}
     bl_context = "objectmode"
 
     def execute(self, context):
         for ob in context.active_object.children:
-            if ob.name == (context.active_object.name+"_text1"):
+            if "_Text1" in ob.name:
                 if context.active_object.textAnim.text1 != "":
                     ob.data.body = context.active_object.textAnim.text1
-            elif ob.name == (context.active_object.name+"_text2"):
+            elif "_Text2" in ob.name:
                 if context.active_object.textAnim.text2 != "":
                     ob.data.body = context.active_object.textAnim.text2
-        
+            elif "_Text3" in ob.name:
+                if context.active_object.textAnim.text3 != "":
+                    ob.data.body = context.active_object.textAnim.text3
+            
         return {'FINISHED'}
     
-class TextAnimPOne(bpy.types.Panel):
-    bl_idname = "TextAnim_POne"
-    bl_label = "P One"
+class TextAnimControllerPanel(bpy.types.Panel):
+    bl_idname = "TextAnim.ControllerPanel"
+    bl_label = "Controller Panel"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_category = "Text Anim"
@@ -163,18 +166,19 @@ class TextAnimPOne(bpy.types.Panel):
     def poll(cls, context):
         return (context.mode == 'OBJECT' 
         and (context.active_object is not None)
-        and	(context.active_object.textAnim is not None)
-        and	context.active_object.textAnim.textAnim )
+        and    (context.active_object.textAnim is not None)
+        and    context.active_object.textAnim.textAnim )
     
     def draw(self, context):
         if bpy.context.active_object.textAnim.textAnim :
             anim = bpy.context.active_object.textAnim
             box = self.layout.box()
             box.label(text=bpy.context.active_object.name + " Options")
-            box.prop(anim, "text1")
-            box.prop(anim, "text2")
-            box.operator("pone.update")
-"""
+            i = 1
+            while i <= len(bpy.context.active_object.children):
+                box.prop(anim, "text" + str(i))
+                i += 1
+            box.operator("textanim.update")
     
 class TextAnim(bpy.types.Panel):
     bl_idname = "OBJECT_PT_text_anim"
@@ -192,7 +196,7 @@ class TextAnim(bpy.types.Panel):
         
 def register():
     bpy.utils.register_module(__name__)
-    #bpy.types.Object.textAnim = bpy.props.PointerProperty(type=TextAnimPropertyGroup)
+    bpy.types.Object.textAnim = bpy.props.PointerProperty(type=TextAnimPropertyGroup)
 
 def unregister():
     bpy.utils.unregister_module(__name__)
