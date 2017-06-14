@@ -37,11 +37,11 @@ Blender addon for pre-made test animations
 - Enter your choice of text in those text boxes.
 - Press update.
 
-![alt change text](https://raw.githubusercontent.com/pamrulla/textanim/master/change text.PNG)
+![alt change text](https://raw.githubusercontent.com/pamrulla/textanim/master/change%20text.PNG)
 
 ## Text Objects overlaps
 - Select the text objects and move to a new location as your choice.
 - This does not change the underline animation.
 
-![alt move text](https://raw.githubusercontent.com/pamrulla/textanim/master/move text.PNG)
+![alt move text](https://raw.githubusercontent.com/pamrulla/textanim/master/move%20text.PNG)
 
