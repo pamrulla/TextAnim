@@ -131,7 +131,7 @@ class TextAnimCreate(bpy.types.Operator):
 class TextAnimPropertyGroup(bpy.types.PropertyGroup):
     textAnim = BoolProperty(name="TextAnim", default=False)
     text1 = StringProperty(name="Text1", default="")
-    text2 = StringProperty(name="Text1", default="")
+    text2 = StringProperty(name="Text2", default="")
     text3 = StringProperty(name="Text3", default="")
 
 class TextAnimOUpdate(bpy.types.Operator):
